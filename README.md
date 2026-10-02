@@ -2,6 +2,8 @@
 
 A minimalist 3D browser cricket game. No build tools, no npm, no install — just open and play.
 
+**Play online:** https://zybernau.github.io/block-cricket/
+
 ## Run it
 
 ```bash
@@ -11,6 +13,26 @@ python3 -m http.server 8000
 ```
 
 (Any static server works — the only dependency is Three.js, loaded from CDN.)
+
+## GitHub Pages pipeline
+
+Every push to `main` publishes the site automatically — no manual step in the loop:
+
+```
+push → ① test   verify.mjs + smoke.mjs + headless.mjs must pass
+     → ② build  stage the static files (index.html · styles.css · src/)
+     → ③ deploy publish to Pages
+```
+
+The pipeline lives in [.github/workflows/pages.yml](.github/workflows/pages.yml)
+(GitHub Actions: `checkout → setup-node 22 → tests → configure-pages →
+upload-pages-artifact → deploy-pages`). Site files only — docs and tests stay
+repo-only. A new push cancels any in-flight deploy (concurrency group `pages`).
+
+**One-time setup** (before the first deploy can succeed): repo
+**Settings → Pages → Build and deployment → Source → "GitHub Actions"**.
+After that, every push to `main` republishes on its own; `workflow_dispatch`
+also lets you re-run the deploy manually from the Actions tab.
 
 ## Controls (Batting)
 

@@ -79,3 +79,16 @@
       with stubbed DOM/THREE: starts → 1→2→3→4 auto-advance → bowls → 5→1 loop,
       no exceptions across 25s of frames)
 - [ ] Browser smoke (user): step messages, field walk-then-freeze, LHB guard, powerplay count
+
+## GitHub Pages pipeline
+
+- [x] `.github/workflows/pages.yml` — push to `main` → test → build → deploy
+  - [x] test job: verify.mjs + smoke.mjs + headless.mjs (setup-node 22)
+  - [x] build job: stage index.html + styles.css + src/ → upload-pages-artifact
+  - [x] deploy job: deploy-pages (environment github-pages, url output)
+  - [x] concurrency group `pages` (new push cancels in-flight deploy)
+  - [x] `workflow_dispatch` trigger for manual re-runs
+- [x] `.gitignore` (`.zvec-grep/`, `node_modules/`, `.DS_Store`, `_site/`)
+- [x] README: pipeline docs + one-time Pages source setting
+- [ ] One-time (user, on GitHub): Settings → Pages → Source → "GitHub Actions"
+- [ ] First push to `main` → site live at https://zybernau.github.io/block-cricket/

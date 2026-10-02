@@ -1,0 +1,70 @@
+# Publishes the static game to GitHub Pages on every push to main.
+#
+# Pipeline: push → 1. verify (tests must pass) → 2. stage the static site → 3. publish.
+# No build step — plain static files + Three.js from CDN.
+#
+# ONE-TIME repo setting (before the first deploy can succeed):
+#   Settings → Pages → Build and deployment → Source → "GitHub Actions"
+#
+# Site URL after the first run: https://zybernau.github.io/block-cricket/
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # also runnable manually from the Actions tab
+
+# one deploy at a time; a new push cancels the in-flight one
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  # ---------- 1. static verification must pass before anything ships ----------
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # Node 22: .js sources parse as ESM without a package.json
+          # (module-syntax detection is default from Node 22)
+          node-version: 22
+      - name: Run verification suite (verify + smoke + headless)
+        run: |
+          node tests/verify.mjs
+          node tests/smoke.mjs
+          node tests/headless.mjs
+
+  # ---------- 2. stage the static site ----------
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage site files (game only — docs/tests stay repo-only)
+        run: |
+          mkdir -p _site
+          cp index.html styles.css _site/
+          cp -r src _site/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  # ---------- 3. publish ----------
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

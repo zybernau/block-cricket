@@ -1,0 +1,9 @@
+# local tool caches / OS noise
+.zvec-grep/
+.DS_Store
+
+# transient stub created+removed by tests/smoke.mjs & tests/headless.mjs
+node_modules/
+
+# GitHub Pages staging dir (created by the pages workflow)
+_site/
