@@ -90,5 +90,9 @@
   - [x] `workflow_dispatch` trigger for manual re-runs
 - [x] `.gitignore` (`.zvec-grep/`, `node_modules/`, `.DS_Store`, `_site/`)
 - [x] README: pipeline docs + one-time Pages source setting
-- [ ] One-time (user, on GitHub): Settings → Pages → Source → "GitHub Actions"
-- [ ] First push to `main` → site live at https://zybernau.github.io/block-cricket/
+- [x] Pushed to origin/main (`1b9d8b6`) — test job GREEN on CI (all 3 suites pass on node 22)
+- [ ] One-time (user, on GitHub): Settings → Pages → Build and deployment →
+      Source → "GitHub Actions" — confirmed missing (GET /pages → 404);
+      configure-pages fails without it
+- [ ] Re-run the workflow (push, or Actions tab → Run workflow) → site live at
+      https://zybernau.github.io/block-cricket/
