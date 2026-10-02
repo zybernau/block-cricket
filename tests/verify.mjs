@@ -113,6 +113,16 @@ check('STANCES has R and L variants with the same cue set', () => {
   assert.deepEqual(Object.keys(STANCES.L).sort(), Object.keys(STANCES.R).sort());
 });
 
+check('stance is image-matched: split feet, deep knee bend, bat raised', () => {
+  const S = STANCES.R;
+  assert.ok(S.footStep > 0.25 && S.footBack < -0.15,
+    `feet read parallel: front ${S.footStep}, back ${S.footBack}`);
+  assert.ok(S.footStep - S.footBack > 0.5, `split too small: ${S.footStep - S.footBack}`);
+  assert.ok(S.kneeFlex > 0.3, `knee bend too shallow: ${S.kneeFlex}`);
+  assert.ok(S.batRaise > Math.PI / 2, `bat not raised: ${S.batRaise}`);
+  assert.ok(S.torsoHunch > 0.55, `hunch too upright: ${S.torsoHunch}`);
+});
+
 check('BATSMAN carries batBlade, recoverDuration, guardTapSpeed, guardOffset', () => {
   assert.ok(BATSMAN.batBlade?.w > 0 && BATSMAN.batBlade?.d > 0);
   assert.ok(BATSMAN.recoverDuration > 0);

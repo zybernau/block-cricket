@@ -105,32 +105,39 @@ export const BATSMAN = {
   // bat mesh (blade width/thickness; length = BAT_LENGTH above)
   batBlade: { w: 0.1, d: 0.18 },
   // spring recovery: follow-through settles back to stance over this many seconds
-  recoverDuration: 0.28,
-  // guard-tap idle animation (bat taps the crease while waiting)
+  recoverDuration: 0.35,
+  // bat-waggle idle animation (the raised bat bobs behind while waiting)
   guardTapSpeed: 3.2,
 };
 
-// ---- Stances keyed by handedness (A2) ----
-// Side-on, weight-on-back-foot stance. Every cue is mirrored at apply time
-// (× mirror) so RHB and LHB both read correctly from behind the camera; the
-// two entries are identical today and exist so per-hand tuning can diverge.
+// ---- Stances keyed by handedness (A2, image-matched) ----
+// Athletic batting stance per the reference image: SPLIT feet (the front foot
+// strides up to the popping crease, the back foot planted well behind — the
+// two legs never read parallel), deep knee bend with the hips dropped so the
+// feet stay planted, chest pressed over the crease with the head up, and the
+// bat raised up-back over the back shoulder. Every cue is mirrored at apply
+// time (× mirror) so RHB and LHB both read correctly from behind the camera;
+// the two entries are identical today and exist so per-hand tuning diverges.
 export const STANCES = {
   R: {
     torsoYaw: 0.55,     // side-on: chest faces the off side (× mirror)
-    torsoHunch: 0.5,    // forward press over the crease
+    torsoHunch: 0.62,   // forward press — chest over the crease (image lean)
     torsoTilt: 0.18,    // head over the front foot (× mirror)
-    batX: 0.38,         // grounded behind the back foot, leg side (× mirror)
-    batY: 0.62,         // hands low, toe near the turf
+    batX: 0.38,         // hands just outside the body line, leg side (× mirror)
+    batY: 0.72,         // hands at waist height (bat raised, image grip)
+    batZ: 0.3,          // hands forward of the body line, near the ball plane
+    batRaise: 2.3,      // blade up-back over the shoulder (image backlift)
     batTilt: 0.28,      // toe angled out toward the keeper (× mirror)
-    footSpread: 0.24,   // feet either side of guard
-    footStep: 0.15,     // front foot edged toward the bowler
+    footSpread: 0.24,   // feet either side of guard (lateral)
+    footStep: 0.36,     // FRONT foot striding up to the popping crease (split)
+    footBack: -0.30,    // BACK foot planted behind, near the stumps (split)
     weightBack: 0.06,   // hips settled toward the back foot
-    kneeFlex: 0.2,      // knees flexed in stance (rad)
+    kneeFlex: 0.45,     // deep knee bend — athletic crouch (image stance)
   },
   L: { // mirrors R (same numbers, applied × mirror at applyStance)
-    torsoYaw: 0.55, torsoHunch: 0.5, torsoTilt: 0.18,
-    batX: 0.38, batY: 0.62, batTilt: 0.28,
-    footSpread: 0.24, footStep: 0.15, weightBack: 0.06, kneeFlex: 0.2,
+    torsoYaw: 0.55, torsoHunch: 0.62, torsoTilt: 0.18,
+    batX: 0.38, batY: 0.72, batZ: 0.3, batRaise: 2.3, batTilt: 0.28,
+    footSpread: 0.24, footStep: 0.36, footBack: -0.30, weightBack: 0.06, kneeFlex: 0.45,
   },
 };
 

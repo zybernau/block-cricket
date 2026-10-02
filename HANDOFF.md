@@ -201,12 +201,40 @@ Phase B (step-driven game flow — the user's 5 steps):
 - `bowlingEngine.js` `generate(bowler, heat, hand, bias)` accepts the step-1
   plan bias; `targetX` is now exposed on the delivery (debug/HUD).
 
-Verification: `node tests/verify.mjs` (17 static assertions), `node
+Verification: `node tests/verify.mjs` (18 static assertions), `node
 tests/smoke.mjs` (integration: plan → engine → flight → wide rules), and
 `node tests/headless.mjs` (drives the REAL frame loop with stubbed DOM/THREE:
 start → 1→2→3→4 auto-advance → bowls → 5→1 loop, no exceptions across 25s).
 All green; 195/200 planned deliveries legal. The flow is fully automatic —
 no manual key moves it.
+
+## 8. Update — image-matched stance rework
+
+Per the user's reference image (batsman in a side-on batting stance):
+- `constants.js` `STANCES` reworked: SPLIT feet — `footStep: 0.36` (front foot
+  strides up to the popping crease, lands at world z ≈ 0.75 = the crease line)
+  and `footBack: -0.30` (back foot planted near the stumps) — the legs never
+  read parallel (split ≈ 0.66 m). Deep knee bend `kneeFlex: 0.45` with the
+  hips DROPPED so the feet stay planted; chest over the crease
+  `torsoHunch: 0.62`; bat RAISED up-back over the shoulder `batRaise: 2.3`
+  with hands forward `batZ: 0.3`, `batY: 0.72`; elbows bent (`elbow: 0.5`).
+- `scene.js` exports `FIG_LIMB = { thigh: 0.42, shin: 0.40 }` — `batsman.js`
+  derives the stance hip height as `thigh + shin·cos(kneeFlex)` so a bent
+  knee keeps the feet on the turf (the hips drop, the figure never floats).
+- `batsman.js`:
+  - `stanceTargets()` gains `neckRot` (head counter-rotated up, eyes down the
+    pitch) and `elbow`; applyStance applies both.
+  - The swing arc now runs from the RAISED backlift
+    (`batRaise + (attack ? 0.55 : 0.25) + pose.lift`) DOWN through the ball
+    and up the other side (full cricket swing) — before it, the arc started
+    at the ball and only followed through upward.
+  - The recovery returns the bat over the TOP (shortest-arc blend on
+    `batRot[0]`) to the raised stance — never windmilling back through the ball.
+  - The guard tap is now a bat WAGGLE around the raised pose (matches the image).
+  - Windup torso hunch is stance-relative (`torsoHunch + 0.08`), and the hips
+    sit at the dropped height (`t.legL[1]`), not raw `FIG_HIP_Y`.
+- Deployment: the Pages pipeline is live — the site publishes on every push to
+  `main` (https://zybernau.github.io/block-cricket/).
 
 ## 6. Roadmap (user-stated future work)
 

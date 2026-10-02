@@ -14,6 +14,9 @@ import { rand } from './utils.js';
 // for the head. Heights: hips at FIG_HIP_Y, feet at y=0, total leg 0.82,
 // arm 0.58 (same proportions as the original single-box limbs).
 export const FIG_HIP_Y = 0.82;
+// limb segment lengths — batsman.js derives the stance hip height from them
+// so a bent knee keeps the feet planted on the turf
+export const FIG_LIMB = { thigh: 0.42, shin: 0.40 };
 
 export function buildBlockPerson(color) {
   const g = new THREE.Group();

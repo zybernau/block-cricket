@@ -90,9 +90,21 @@
   - [x] `workflow_dispatch` trigger for manual re-runs
 - [x] `.gitignore` (`.zvec-grep/`, `node_modules/`, `.DS_Store`, `_site/`)
 - [x] README: pipeline docs + one-time Pages source setting
-- [x] Pushed to origin/main (`1b9d8b6`) — test job GREEN on CI (all 3 suites pass on node 22)
-- [ ] One-time (user, on GitHub): Settings → Pages → Build and deployment →
-      Source → "GitHub Actions" — confirmed missing (GET /pages → 404);
-      configure-pages fails without it
-- [ ] Re-run the workflow (push, or Actions tab → Run workflow) → site live at
-      https://zybernau.github.io/block-cricket/
+- [x] One-time (user, on GitHub): Settings → Pages → Source → "GitHub Actions" — done
+- [x] **SITE LIVE**: https://zybernau.github.io/block-cricket/ (HTTP 200, all 3 jobs green)
+
+## Stance rework (image-matched)
+
+- [x] `STANCES` reworked per the reference image: split feet (`footStep 0.36`
+      to the crease, `footBack -0.30` behind — legs never read parallel),
+      deep knee bend (`kneeFlex 0.45`) with hips dropped so feet stay planted,
+      chest over the crease (`torsoHunch 0.62`), head up (neck counter-rotation),
+      bat raised up-back (`batRaise 2.3`) with hands forward (`batZ 0.3`, elbows bent)
+- [x] `scene.js` exports `FIG_LIMB` (thigh/shin lengths) — batsman derives the
+      stance hip height so bent knees keep the feet on the turf
+- [x] `batsman.js`: swing arc now runs from the raised backlift, down through
+      the ball, up the other side; recovery returns the bat over the top
+      (shortest arc) to the raised stance; guard tap → bat waggle around the
+      raised pose
+- [x] verify.mjs stance assertions (split > 0.5m, kneeFlex > 0.3, batRaise > π/2)
+- [x] All suites green (18/18 verify · 5/5 smoke · 6/6 headless)
