@@ -1,0 +1,25 @@
+{
+  "manifestVersion": 1,
+  "id": "9e5df8ba-dd5e-4416-9e22-b808b88b53e4",
+  "name": "cricket-game",
+  "path": "/Users/raja/code/opencode_projects/cricket-game/.zvec-grep",
+  "rootPaths": [
+    {
+      "absolutePath": "/Users/raja/code/opencode_projects/cricket-game",
+      "recursive": true
+    }
+  ],
+  "indexPolicy": "enabled",
+  "embedding": {
+    "provider": "local",
+    "model": "potion-code-16m-v2",
+    "dimension": 256,
+    "metric": "cosine"
+  },
+  "indexVersion": 1,
+  "createdTime": 1789210148622,
+  "updatedTime": 1789218579126,
+  "embeddingRuntime": {
+    "device": "auto"
+  }
+}

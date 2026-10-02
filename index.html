@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cricket — Backyard Block Cricket</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <!-- 3D canvas is injected here -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- HUD overlay -->
+    <div id="hud">
+      <!-- Top score strip -->
+      <div id="scorecard" class="hud-panel">
+        <span id="score">0/0</span>
+        <span class="sep">·</span>
+        <span id="overs">0.0/2</span>
+        <span id="difficulty-badge" class="diff-hard">HARD</span>
+        <span id="innings-state">BATTING</span>
+      </div>
+
+      <!-- This over / ball reel -->
+      <div id="last-balls" class="hud-panel">
+        <span class="label">Last 6:</span>
+        <span id="balls-reel">—</span>
+      </div>
+
+      <!-- Step-driven game flow (1 plan · 2 field · 3 freeze · 4 bowl · 5 resolve) -->
+      <div id="step-panel" class="hud-panel">
+        <span class="label">Flow</span>
+        <span id="step-badge" class="step-badge">—</span>
+        <span id="step-text"></span>
+      </div>
+
+      <!-- Big message in the middle (FOUR!, BOWLED!, etc.) -->
+      <div id="big-message"></div>
+
+      <!-- Timing + delivery feedback -->
+      <div id="feedback">
+        <div id="delivery-tag"></div>
+        <div id="timing-tag"></div>
+      </div>
+
+      <!-- Mode + controls hint (bottom) -->
+      <div id="mode-bar" class="hud-panel">
+        <span id="mode-indicator" class="mode-defensive">DEFENSIVE</span>
+        <span id="hand-badge" class="hand-rhb" title="Striker handedness">RHB</span>
+        <span class="hint">
+          <b>WASD</b> move · <b>Arrows</b> aim · <b>Space</b> swing · <b>Shift</b> attack · <b>R</b> restart
+        </span>
+      </div>
+
+      <!-- Game over screen -->
+      <div id="game-over" class="hidden">
+        <div id="result-text"></div>
+        <div class="restart-hint">Press <b>R</b> to play again</div>
+      </div>
+
+      <!-- Difficulty select (shown before first ball) -->
+      <div id="start-screen">
+        <div class="start-card">
+          <div class="start-title">🏏 BACKYARD BLOCK CRICKET</div>
+          <div class="start-sub">Overs</div>
+          <div id="overs-options">
+            <button class="ov-option selected" data-overs="5">5</button>
+            <button class="ov-option" data-overs="10">10</button>
+            <button class="ov-option" data-overs="20">20</button>
+            <button class="ov-option" data-overs="custom">Custom
+              <input id="custom-overs" type="number" min="1" max="50" value="5" />
+            </button>
+          </div>
+          <div class="start-sub">Choose your difficulty</div>
+          <div id="difficulty-options">
+            <button class="diff-option" data-diff="easy">
+              <span class="diff-name">EASY</span>
+              <span class="diff-desc">Slow balls · huge timing window · sleepy fielders</span>
+            </button>
+            <button class="diff-option" data-diff="medium">
+              <span class="diff-name">MEDIUM</span>
+              <span class="diff-desc">Gentle pace · forgiving timing · lazy fielders</span>
+            </button>
+            <button class="diff-option selected" data-diff="hard">
+              <span class="diff-name">HARD</span>
+              <span class="diff-desc">Original tuning · sharp pace · safe hands</span>
+            </button>
+            <button class="diff-option" data-diff="master">
+              <span class="diff-name">MASTER</span>
+              <span class="diff-desc">Express pace · big swing · razor timing · sticky hands</span>
+            </button>
+          </div>
+          <div class="start-hint">Pick overs, click a level or press <b>1–4</b> · <b>Enter</b> starts</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
