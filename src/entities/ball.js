@@ -37,10 +37,15 @@ export class Ball {
     this.mesh.visible = false;
   }
 
-  // apply batting impulse
+  // apply batting impulse — NaN-guarded: a bad velocity must never poison the
+  // ball state (NaN positions make every resolution comparison false and the
+  // state machine would hang forever with no error on screen)
   launch(dirX, dirZ, speed, elevationDeg) {
-    const el = THREE.MathUtils.degToRad(elevationDeg);
-    this.vel.set(dirX * speed * Math.cos(el), speed * Math.sin(el), dirZ * speed * Math.cos(el));
+    const el = THREE.MathUtils.degToRad(Number.isFinite(elevationDeg) ? elevationDeg : 10);
+    const sp = Number.isFinite(speed) ? speed : 10;
+    const dx = Number.isFinite(dirX) ? dirX : 0;
+    const dz = Number.isFinite(dirZ) ? dirZ : 1;
+    this.vel.set(dx * sp * Math.cos(el), sp * Math.sin(el), dz * sp * Math.cos(el));
     this.accel.set(0, 0, 0);
     this.hit = true;
   }

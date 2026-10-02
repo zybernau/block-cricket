@@ -44,6 +44,7 @@ const FREEZE_WAIT = 0.45;
 const FIELDSET_TIMEOUT = 2.8; // freeze anyway if the walk somehow overruns
 const IDLE_WAIT = 0.55;
 const SETTLE_WAIT = 1.0;
+const BALL_WATCHDOG = 12;     // a delivery/shot stalled this long => force-resolve (error reported)
 
 let renderer, scene, camera, stumpsBatter;
 let ball, batsman, nonStriker, bowler, umpire, fielders, match, aimGuide;
@@ -110,6 +111,7 @@ function backToMenu() {
   fielders.reset();
   umpire.reset();
   ball.hide();
+  hud.hideError();
   currentPlan = null;
   currentField = 'balanced';
   delivery = null;
@@ -124,6 +126,10 @@ function init() {
   ({ renderer, scene, camera, stumpsBatter } = createScene(canvas));
   initInput();
   hud.initHUD();
+
+  // surface uncaught errors on the error strip too (nothing freezes silently)
+  window.addEventListener('error', (e) => reportError(e.error || e.message, 'window.onerror'));
+  window.addEventListener('unhandledrejection', (e) => reportError(e.reason, 'unhandledrejection'));
 
   ball = new Ball(scene);
   batsman = new Batsman(scene);
@@ -382,6 +388,15 @@ function update(dt) {
       bowler.update(dt);
       ball.update(dt, GRAVITY);
 
+      // watchdog: a stalled delivery (ball never arrives — e.g. NaN velocity)
+      // force-resolves with an error note instead of hanging the flow
+      if (stateT >= BALL_WATCHDOG) {
+        reportError(new Error('delivery stalled — force-resolved as a dot'), `state=DELIVERY t=${stateT.toFixed(2)}`);
+        ball.stop();
+        doDot();
+        return;
+      }
+
       // swing? latch one aim vector so animation and ball direction agree
       if (swingOutcome === null && swingPressed()) {
         const aim = getAimVector();
@@ -449,6 +464,17 @@ function update(dt) {
       bowler.update(dt);
       ball.update(dt, GRAVITY);
       if (!ball.active) break;
+
+      // watchdog: if the ball stalls without resolving (e.g. a NaN velocity
+      // ever slipped through), force-resolve with an error note instead of
+      // hanging the state machine forever
+      if (stateT >= BALL_WATCHDOG) {
+        reportError(new Error('ball stalled without resolving — force-resolved as a dot'), `state=SHOT t=${stateT.toFixed(2)}`);
+        ball.stop();
+        ball.hide();
+        doDot();
+        return;
+      }
 
       // record crossing states
       if (resolutionData === null) {
@@ -603,11 +629,31 @@ function camFollow(dt, follow) {
   camera.lookAt(camLook);
 }
 
+// ---------- error reporting (debug later, never freeze) ----------
+// Any exception inside update() used to escape loop() before
+// requestAnimationFrame and hard-freeze the game with no trace. Now:
+//   1. loop() try/catches the frame, reports it, and KEEPS the loop alive
+//   2. window 'error' / 'unhandledrejection' surface here too
+//   3. the message + first stack line show on the on-screen error strip
+function reportError(err, context = '') {
+  const msg = err?.message || String(err);
+  const where = (err?.stack || '').split('\n')
+    .map((l) => l.trim())
+    .find((l) => l.startsWith('at ') && !l.includes('reportError')) || '';
+  console.error(`[game error]${context ? ' (' + context + ')' : ''}`, err?.stack || err);
+  hud.showError(`⚠ ${msg}${where ? ' — ' + where : ''}`);
+}
+
 // ---------- main loop ----------
 const clock = new THREE.Clock();
 function loop() {
   const dt = Math.min(clock.getDelta(), 0.035);
-  update(dt);
+  try {
+    update(dt);
+  } catch (err) {
+    // report + keep rendering — a bad frame must never kill the game
+    reportError(err, `state=${state} t=${stateT.toFixed(2)}`);
+  }
   renderer.render(scene, camera);
   flushJustPressed();
   requestAnimationFrame(loop);

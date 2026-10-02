@@ -160,6 +160,14 @@ No browser is installed in this environment, so verification is static
   game hard-freezes mid-state (observed: missing `FieldingTeam.setSetting`
   froze the flow at 1/5). Any new method called from the state machine MUST
   exist — run `node tests/headless.mjs` to catch this class of bug.
+  MITIGATED: `loop()` now try/catches every frame → `reportError()` shows the
+  message + first stack line on the on-screen error strip and KEEPS the loop
+  alive; `window.onerror`/`unhandledrejection` surface there too; DELIVERY/SHOT
+  watchdogs (`BALL_WATCHDOG = 12`) force-resolve a stalled ball as a dot.
+- `const` + later reassignment is a RUNTIME error node --check cannot see —
+  it froze the game at the swing (`resolveSwing` reassigned `const speed` on
+  the wrong-length path). Covered by the deterministic wrong-length regression
+  in `tests/verify.mjs` (every SHOT_ZONE × LENGTH combination resolves).
 
 ## 7. Update — realistic batsmen + step-driven game flow (implemented)
 
@@ -235,6 +243,38 @@ Per the user's reference image (batsman in a side-on batting stance):
     sit at the dropped height (`t.legL[1]`), not raw `FIG_HIP_Y`.
 - Deployment: the Pages pipeline is live — the site publishes on every push to
   `main` (https://zybernau.github.io/block-cricket/).
+
+## 9. Update — 4/5 freeze fixed + error-reporting layer
+
+Root cause (`src/systems/contact.js`): `resolveSwing` declared `const speed`
+and then reassigned it on the wrong-length path (`speed *= SHOT.lengthMissMul`,
+`speed = Math.min(speed, 11)`) — "Assignment to constant variable" thrown from
+the Space handler in `update()`, escaping `loop()` before
+`requestAnimationFrame` → hard freeze EXACTLY when Space was pressed (only
+when the aimed shot mismatched the delivery length, so it was intermittent).
+Fixed: `speed` is `let`.
+
+Error-reporting layer (never freeze silently again):
+- `main.js` `loop()` try/catches every frame → `reportError(err, context)`
+  logs to the console AND shows `⚠ message — first stack line` on the on-screen
+  error strip, then KEEPS rendering (the game survives bad frames).
+- `window.addEventListener('error' | 'unhandledrejection')` surface on the strip.
+- HUD: `#error-strip` (index.html) + `showError(text, hold=8)` / `hideError()`
+  (hud.js) + red strip styling (styles.css). Hidden again in `backToMenu()`.
+- `ball.launch()` is NaN-guarded (finite fallbacks) — a bad velocity can never
+  poison the ball state (NaN makes every resolution comparison false and the
+  state machine would hang forever with no trace).
+- DELIVERY/SHOT watchdogs: `BALL_WATCHDOG = 12` — a ball stalled this long
+  force-resolves as a dot with an error note instead of hanging the flow.
+
+Regression tests:
+- `tests/verify.mjs` (21 assertions): deterministic wrong-length swing (the
+  exact freeze path: short/yorker + Straight Drive) + every SHOT_ZONE × LENGTH
+  combination resolves without throwing, values finite.
+- `tests/headless.mjs` (7 checks): 45s run (≈5-6 balls) with varying aim —
+  asserts the loop survived AND the error strip never fired; plus a synthetic
+  error fired through the game's own window handler shows on the strip and the
+  loop keeps running.
 
 ## 6. Roadmap (user-stated future work)
 

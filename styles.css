@@ -108,6 +108,27 @@ html, body {
 }
 #step-text { font-size: 12px; opacity: 0.85; }
 
+/* Runtime error strip — top centre, visible whenever a caught error fires */
+#error-strip {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 70vw;
+  background: rgba(179, 0, 0, 0.85);
+  border: 1px solid rgba(255, 120, 120, 0.7);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  z-index: 20;
+}
+#error-strip.hidden { display: none; }
+#error-strip .label { font-size: 14px; }
+#error-text { word-break: break-word; }
+
 /* Big center message */
 #big-message {
   position: absolute;

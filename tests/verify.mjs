@@ -151,5 +151,51 @@ check('SHOT carries the length-aware penalties', () => {
   assert.ok(SHOT.edgeChance > 0 && SHOT.edgeChance < 1);
 });
 
+console.log('\n— Wrong-length swing regression (the 4/5 freeze) —');
+
+// The 4/5 freeze: resolveSwing reassigned `const speed` on the wrong-length
+// path -> "Assignment to constant variable" thrown from the Space handler ->
+// the loop died before requestAnimationFrame and the game hard-froze exactly
+// when Space was pressed. This test deterministically exercises that path.
+const { resolveSwing } = await import('../src/systems/contact.js');
+
+const fakeBatsman = { attack: false, hand: 'R', x: 0, z: 0.45 };
+const fakeBall = { pos: { x: 0, z: 1.1 } };
+const straightAim = { x: 0, z: 1, idle: false }; // Straight Drive: worksOn ['full','good']
+
+check('wrong-length swing does NOT throw (const-speed regression)', () => {
+  // short ball + straight drive = the exact path that froze the game
+  const out = resolveSwing(fakeBatsman, fakeBall, straightAim, { length: { name: 'short' } });
+  assert.equal(out.outcome, 'hit');
+  assert.equal(out.lengthMatch, false);
+  assert.ok(Number.isFinite(out.speed) && out.speed > 0, 'speed must stay finite');
+  // yorker + straight drive = the other mismatched length
+  const out2 = resolveSwing(fakeBatsman, fakeBall, straightAim, { length: { name: 'yorker' } });
+  assert.equal(out2.lengthMatch, false);
+  assert.ok(Number.isFinite(out2.speed));
+});
+
+check('right-length swing keeps full power (no penalty)', () => {
+  for (const len of ['full', 'good']) {
+    const out = resolveSwing(fakeBatsman, fakeBall, straightAim, { length: { name: len } });
+    assert.equal(out.lengthMatch, true, `length ${len}`);
+    assert.ok(Number.isFinite(out.speed));
+  }
+});
+
+check('every (SHOT_ZONE × LENGTH) combination resolves without throwing', () => {
+  for (const zone of SHOT_ZONES) {
+    for (const len of LENGTHS) {
+      // aim the zone's own direction: k * 45°
+      const a = zone.k * (Math.PI / 4);
+      const aim = { x: Math.sin(a), z: Math.cos(a), idle: false };
+      const out = resolveSwing(fakeBatsman, fakeBall, aim, { length: { name: len.name } });
+      assert.equal(out.outcome, 'hit', `${zone.name} on ${len.name}`);
+      assert.ok(Number.isFinite(out.speed) && Number.isFinite(out.elevation),
+        `${zone.name} on ${len.name} produced non-finite values`);
+    }
+  }
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -46,6 +46,12 @@
       <!-- Big message in the middle (FOUR!, BOWLED!, etc.) -->
       <div id="big-message"></div>
 
+      <!-- Runtime error strip (try/catch + window.onerror surface here) -->
+      <div id="error-strip" class="hidden">
+        <span class="label">⚠</span>
+        <span id="error-text"></span>
+      </div>
+
       <!-- Timing + delivery feedback -->
       <div id="feedback">
         <div id="delivery-tag"></div>

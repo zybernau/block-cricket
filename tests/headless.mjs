@@ -150,13 +150,15 @@ try {
     assert.equal(badge(), '1/5', `badge after start: "${badge()}"`);
   });
 
-  // 3. drive ~25s of frames, tapping Space each frame (swing path too) —
+  // 3. drive ~45s of frames (≈5-6 balls), tapping Space + varying the aim —
   //    the flow must advance 1 → 2 → 3 → 4 → 5 → 1 with NO manual key
   const transitions = [];
   let prev = badge();
   let bowled = false;
-  for (let i = 0; i < 1500 && !errors.length; i++) {
-    keydown('Space'); keyup('Space'); // swing attempt every frame (harmless off-delivery)
+  const aims = ['Space', 'ArrowUp', 'Space', 'ArrowDown', 'Space', 'ArrowRight', 'Space', 'ArrowLeft'];
+  for (let i = 0; i < 2700 && !errors.length; i++) {
+    const k = aims[i % aims.length];
+    keydown(k); keyup(k); // swing attempt / aim change each frame
     try { frame(); } catch (e) {
       errors.push(`frame ${i} (badge ${prev}): ${e.message} :: ${(e.stack || '').split('\n')[1] || ''}`);
       break;
@@ -173,7 +175,7 @@ try {
   });
 
   check('bowler bowls: delivery tag appears (step 4 → delivery)', () => {
-    assert.ok(bowled, 'no delivery was ever bowled in 25s of frames');
+    assert.ok(bowled, 'no delivery was ever bowled in 45s of frames');
   });
 
   check('full cycle returns to step 1 (5 resolve → 1 plan)', () => {
@@ -183,12 +185,25 @@ try {
       `flow never looped back to PLAN in: ${seq}`);
   });
 
-  check('no runtime exception across 25s of frames (no freeze)', () => {
+  check('no runtime errors across 45s of frames (loop survived AND error strip never fired)', () => {
     assert.deepEqual(errors, [], errors.join(' | '));
+    // the loop now try/catches internally — an in-game error surfaces on the
+    // error strip (errorText) instead of throwing out of frame()
+    assert.equal(els.get('error-text')?.textContent ?? '', '',
+      'game error was reported on the error strip');
   });
 
   check('step text keeps flowing (non-empty at each advance)', () => {
     assert.ok(typeof stepText() === 'string');
+  });
+
+  check('error surface works: a synthetic error shows on the strip and the loop survives', () => {
+    // fire through the game's own window error handler
+    (handlers['error'] || []).forEach((h) => h({ error: new Error('test-error-surface') }));
+    assert.ok((els.get('error-text')?.textContent ?? '').includes('test-error-surface'),
+      `error text: "${els.get('error-text')?.textContent}"`);
+    // the loop must still be alive after an error (no freeze)
+    try { frame(); } catch (e) { assert.fail(`loop died after error: ${e.message}`); }
   });
 
   console.log(`\n${pass} passed, ${fail} failed`);

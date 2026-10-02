@@ -93,6 +93,30 @@
 - [x] One-time (user, on GitHub): Settings → Pages → Source → "GitHub Actions" — done
 - [x] **SITE LIVE**: https://zybernau.github.io/block-cricket/ (HTTP 200, all 3 jobs green)
 
+## Freeze at 4/5 (swing press) — fixed
+
+- [x] **Root cause** (`src/systems/contact.js`): `resolveSwing` declared
+      `const speed` and then reassigned it on the wrong-length path
+      (`speed *= SHOT.lengthMissMul`) → "Assignment to constant variable"
+      thrown from the Space handler → the loop died before
+      `requestAnimationFrame` → hard freeze exactly at the swing. Fixed:
+      `speed` is now `let`.
+- [x] **Error reporting layer** (debug later, never freeze):
+  - [x] `loop()` try/catches every frame → `reportError()` (console + on-screen
+        error strip) and KEEPS the loop alive
+  - [x] `window.onerror` + `unhandledrejection` handlers surface on the strip
+  - [x] HUD error strip (index.html `#error-strip` + hud.js `showError`/`hideError`
+        + styles.css) — message + first stack line, visible for 8s
+  - [x] `ball.launch` NaN-guarded (a bad velocity can never poison the ball state)
+  - [x] DELIVERY/SHOT watchdogs (`BALL_WATCHDOG = 12s`): a stalled ball
+        force-resolves as a dot with an error note instead of hanging forever
+- [x] **Regression tests**:
+  - [x] verify.mjs: deterministic wrong-length swing (the exact freeze path) +
+        every SHOT_ZONE × LENGTH combination resolves without throwing (21/21)
+  - [x] headless.mjs: 45s run with varying aim, asserts the loop survived AND
+        the error strip never fired + a synthetic error shows on the strip and
+        the loop survives (7/7)
+
 ## Stance rework (image-matched)
 
 - [x] `STANCES` reworked per the reference image: split feet (`footStep 0.36`

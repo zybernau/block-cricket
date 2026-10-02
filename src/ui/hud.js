@@ -14,6 +14,8 @@ export function initHUD() {
     stepBadge: $('step-badge'),
     stepText: $('step-text'),
     bigMsg: $('big-message'),
+    errorStrip: $('error-strip'),
+    errorText: $('error-text'),
     deliveryTag: $('delivery-tag'),
     timingTag: $('timing-tag'),
     modeIndicator: $('mode-indicator'),
@@ -161,4 +163,25 @@ export function showGameOver(text) {
 }
 export function hideGameOver() {
   els.gameOver.classList.add('hidden');
+}
+
+// ---- Runtime error strip ----
+// reportError (main.js) surfaces caught exceptions + window.onerror here so
+// failures are VISIBLE on screen (with the first stack line) instead of the
+// game silently freezing — copy the text from the console for debugging.
+let errorTimer = null;
+
+export function showError(text, hold = 8) {
+  if (!els.errorStrip) return;
+  if (els.errorText) els.errorText.textContent = text || '';
+  els.errorStrip.classList.remove('hidden');
+  clearTimeout(errorTimer);
+  if (hold > 0) {
+    errorTimer = setTimeout(() => els.errorStrip.classList.add('hidden'), hold * 1000);
+  }
+}
+
+export function hideError() {
+  clearTimeout(errorTimer);
+  els.errorStrip?.classList.add('hidden');
 }

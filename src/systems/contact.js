@@ -43,7 +43,9 @@ export function resolveSwing(batsman, ball, aimOverride, delivery = null) {
 
   const profile = batsman.attack ? SHOT.attack : SHOT.defensive;
   const mistimed = qual !== 'perfect';
-  const speed = profile.power * (mistimed ? SHOT.misMul : 1) * rand(0.9, 1.1);
+  // `let` — the wrong-length penalty below reassigns it (a `const` here threw
+  // "Assignment to constant variable" and hard-froze the game mid-swing)
+  let speed = profile.power * (mistimed ? SHOT.misMul : 1) * rand(0.9, 1.1);
   let elevation = profile.elevation * (mistimed ? 0.8 : 1) + rand(-profile.powerJitter, profile.powerJitter);
   let aerial = batsman.attack;
 
